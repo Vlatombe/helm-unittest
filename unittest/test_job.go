@@ -43,6 +43,7 @@ type TestJob struct {
 		IsUpgrade bool
 	}
 	Capabilities struct {
+		KubeVersion KubeVersion
 		APIVersions []string
 	}
 	// route indicate which chart in the dependency hierarchy
@@ -52,6 +53,13 @@ type TestJob struct {
 	definitionFile string
 	// template assertion should assert if not specified
 	defaultTemplateToAssert string
+}
+
+// Kubernetes Version
+type KubeVersion struct {
+	Version string
+	Major   string
+	Minor   string
 }
 
 // Run render the chart and validate it with assertions in TestJob
@@ -168,13 +176,20 @@ func (t *TestJob) releaseOption() *chartutil.ReleaseOptions {
 // get chartutil.CapabilityOptions ready for render
 // Only supports APIVersions for now
 func (t *TestJob) capabilityOption() *chartutil.Capabilities {
-	options := chartutil.Capabilities{APIVersions: chartutil.DefaultVersionSet}
+	options := &chartutil.Capabilities{
+		KubeVersion: KubeVersion{
+			Version: "v1.16.0",
+			Major:   "1",
+			Minor:   "16",
+		},
+		APIVersions: chartutil.DefaultVersionSet,
+	}
 	if len(t.Capabilities.APIVersions) > 0 {
 		var arr []string
 		arr = append(t.Capabilities.APIVersions, "v1")
 		options.APIVersions = chartutil.NewVersionSet(arr...)
 	}
-	return &options
+	return options
 }
 
 // parse rendered manifest if it's yaml
